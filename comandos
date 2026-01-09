@@ -1,0 +1,38 @@
+-- 1. Crear la base de datos (si no existe)
+CREATE DATABASE IF NOT EXISTS consultoria_db;
+
+-- 2. Usar la base de datos
+USE consultoria_db;
+
+-- 3. Crear la tabla de usuarios
+CREATE TABLE IF NOT EXISTS usuarios (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    rol VARCHAR(50) DEFAULT 'cliente',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP NULL DEFAULT NULL
+);
+
+
+
+INSERT INTO usuarios (nombre, email, rol) VALUES 
+('Ana Gomez', 'ana@empresa.com', 'admin'),
+('Carlos Ruiz', 'carlos@cliente.com', 'cliente'),
+('Diana Paz', 'diana@test.com', 'cliente');
+
+
+
+UPDATE usuarios 
+SET nombre = 'Carlos Ruiz Jr.', rol = 'vip' 
+WHERE email = 'carlos@cliente.com';
+
+
+UPDATE usuarios 
+SET deleted_at = NOW() 
+WHERE nombre = 'Diana Paz';
+
+
+
+SELECT * FROM usuarios WHERE deleted_at IS NULL;
+
