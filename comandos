@@ -1,10 +1,21 @@
--- 1. Crear la base de datos (si no existe)
+/*
+ * -------------------------------------------------------------
+ * SCRIPT DE INICIALIZACIÓN - PROYECTO CONSULTORÍA
+ * Sistema: Debian 13 / MariaDB
+ * Funcionalidad: Gestión de usuarios con Soft Delete (Borrado Lógico)
+ * -------------------------------------------------------------
+ */
+
+-- 1. CREACIÓN DE LA BASE DE DATOS
+-- Creamos la DB solo si no existe para evitar errores
 CREATE DATABASE IF NOT EXISTS consultoria_db;
 
--- 2. Usar la base de datos
+-- Seleccionamos la DB para trabajar en ella
 USE consultoria_db;
 
--- 3. Crear la tabla de usuarios
+-- 2. CREACIÓN DE LA TABLA
+-- El campo 'deleted_at' es la clave del Soft Delete.
+-- Si es NULL, el usuario existe. Si tiene fecha, está "borrado".
 CREATE TABLE IF NOT EXISTS usuarios (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(100) NOT NULL,
@@ -14,25 +25,36 @@ CREATE TABLE IF NOT EXISTS usuarios (
     deleted_at TIMESTAMP NULL DEFAULT NULL
 );
 
+-- 3. POBLAR DATOS (SEEDING)
+-- Usamos INSERT IGNORE para que no falle si los usuarios ya existen
+INSERT IGNORE INTO usuarios (nombre, email, rol) VALUES 
+('Ana Admin', 'ana@consultoria.local', 'admin'),
+('Carlos Cliente', 'carlos@gmail.com', 'cliente'),
+('Diana Borrada', 'diana@test.com', 'cliente'),
+('Roberto Vip', 'roberto@empresa.com', 'vip');
 
-
-INSERT INTO usuarios (nombre, email, rol) VALUES 
-('Ana Gomez', 'ana@empresa.com', 'admin'),
-('Carlos Ruiz', 'carlos@cliente.com', 'cliente'),
-('Diana Paz', 'diana@test.com', 'cliente');
-
-
-
+-- 4. SIMULACIÓN DE EDICIÓN (UPDATE)
+-- Actualizamos el rol de Roberto
 UPDATE usuarios 
-SET nombre = 'Carlos Ruiz Jr.', rol = 'vip' 
-WHERE email = 'carlos@cliente.com';
+SET rol = 'vip_gold', nombre = 'Roberto Vip Gold' 
+WHERE email = 'roberto@empresa.com';
 
-
+-- 5. SIMULACIÓN DE SOFT DELETE
+-- "Eliminamos" a Diana marcando su fecha de borrado
 UPDATE usuarios 
 SET deleted_at = NOW() 
-WHERE nombre = 'Diana Paz';
+WHERE email = 'diana@test.com';
 
+-- -------------------------------------------------------------
+-- REPORTES DE VERIFICACIÓN
+-- -------------------------------------------------------------
 
+SELECT '>>> LISTA DE USUARIOS ACTIVOS (Lo que ve el sistema)' AS Reporte;
+SELECT id, nombre, email, rol, created_at 
+FROM usuarios 
+WHERE deleted_at IS NULL;
 
-SELECT * FROM usuarios WHERE deleted_at IS NULL;
-
+SELECT '>>> PAPELERA DE RECICLAJE (Usuarios eliminados)' AS Reporte;
+SELECT id, nombre, email, deleted_at 
+FROM usuarios 
+WHERE deleted_at IS NOT NULL;
